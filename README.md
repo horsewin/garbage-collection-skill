@@ -1,2 +1,10 @@
-# garbage-collection-skill
-Alexa skill
+# DartsRating
+## 概要
+* ダーツのレーティングをスタッツから計算してくれるAlexaスキル
+* 機種はライブかフェニックスを選択可能
+
+## ライブラリ群
+* node : v6.10.3
+* alexa-sdk
+* s
+

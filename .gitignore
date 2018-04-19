@@ -58,6 +58,6 @@ typings/
 .env
 
 .idea/
-/.ask/
-/lambda/custom/driver.js
-/UnitJson/
+skill/.ask/
+skill/UnitJson/
+/skill/lambda/custom/driver.js

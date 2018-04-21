@@ -1,53 +1,75 @@
 'use strict';
-const Alexa = require("alexa-sdk");
 
+/**
+ *
+ * @type {{AttributesManager: AttributesManager; AttributesManagerFactory: AttributesManagerFactory; PersistenceAdapter: PersistenceAdapter; DefaultRequestDispatcher: DefaultRequestDispatcher; DefaultErrorMapper: DefaultErrorMapper; ErrorHandler: ErrorHandler; ErrorMapper: ErrorMapper; DefaultHandlerAdapter: DefaultHandlerAdapter; DefaultRequestHandlerChain: DefaultRequestHandlerChain; GenericRequestHandlerChain: GenericRequestHandlerChain; HandlerAdapter: HandlerAdapter; HandlerInput: HandlerInput; RequestHandler: RequestHandler; RequestHandlerChain: RequestHandlerChain; RequestInterceptor: RequestInterceptor; ResponseInterceptor: ResponseInterceptor; DefaultRequestMapper: DefaultRequestMapper; RequestMapper: RequestMapper; RequestDispatcher: RequestDispatcher; ImageHelper: ImageHelper; PlainTextContentHelper: PlainTextContentHelper; ResponseBuilder: ResponseBuilder; ResponseFactory: ResponseFactory; RichTextContentHelper: RichTextContentHelper; TextContentHelper: TextContentHelper; DefaultApiClient: DefaultApiClient; BaseSkillBuilder: BaseSkillBuilder; BaseSkillFactory: BaseSkillFactory; CustomSkillBuilder: CustomSkillBuilder; CustomSkillFactory: CustomSkillFactory; Skill: Skill; SkillBuilders: {custom(): CustomSkillBuilder}; SkillConfiguration: SkillConfiguration}}
+ */
+const Alexa = require('ask-sdk-core');
 
-exports.handler = function(event, context) {
-    const alexa = Alexa.handler(event, context);
-    alexa.registerHandlers(handlers);
-    alexa.appId = process.env.APP_ID;
-    alexa.execute();
+/**
+ * メッセージ文言定義変数
+ */
+const MESSAGE = require('message');
+
+/**
+ *
+ * @type {CustomSkillBuilder}
+ */
+const skillBuilder = Alexa.SkillBuilders.custom();
+
+/**
+ * Lambdaハンドラーの定義
+ * @type {LambdaHandler}
+ */
+exports.handler = skillBuilder
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        HelpHandler,
+        ExitHandler,
+        SessionEndedRequestHandler
+    )
+    .withSkillId(process.env.APP_ID)
+    .addErrorHandlers(ErrorHandler)
+    .lambda();
+
+const LaunchRequestHandler = {
+    canHandle(handlerInput) {
+        return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+    },
+    handle(handlerInput) {
+        return handlerInput.responseBuilder
+            .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
+            .reprompt(MESSAGE.welcome.reprompt)
+            .getResponse();
+    },
 };
 
-const handlers = {
-    'LaunchRequest': function () {
-        this.emit('SayHello');
+const ErrorHandler = {
+    canHandle() {
+        return true;
     },
-    'HelloWorldIntent': function () {
-        this.emit('SayHello');
+    handle(handlerInput, error) {
+        console.error(`Error handled: ${error.message}`);
+
+        return handlerInput.responseBuilder
+            .speak(MESSAGE.error.speak)
+            .reprompt(MESSAGE.error.reprompt)
+            .getResponse();
     },
-    'MyNameIsIntent': function () {
-        this.emit('SayHelloName');
-    },
-    'SayHello': function () {
-        this.response.speak('Hello World!')
-                     .cardRenderer('hello world', 'hello world');
-        this.emit(':responseReady');
-    },
-    'SayHelloName': function () {
-        var name = this.event.request.intent.slots.name.value;
-        this.response.speak('Hello ' + name)
-            .cardRenderer('hello world', 'hello ' + name);
-        this.emit(':responseReady');
-    },
-    'SessionEndedRequest' : function() {
-        console.log('Session ended with reason: ' + this.event.request.reason);
-    },
-    'AMAZON.StopIntent' : function() {
-        this.response.speak('Bye');
-        this.emit(':responseReady');
-    },
-    'AMAZON.HelpIntent' : function() {
-        this.response.speak("You can try: 'alexa, hello world' or 'alexa, ask hello world my" +
-            " name is awesome Aaron'");
-        this.emit(':responseReady');
-    },
-    'AMAZON.CancelIntent' : function() {
-        this.response.speak('Bye');
-        this.emit(':responseReady');
-    },
-    'Unhandled' : function() {
-        this.response.speak("Sorry, I didn't get that. You can try: 'alexa, hello world'" +
-            " or 'alexa, ask hello world my name is awesome Aaron'");
-    }
 };
+
+return new Promise((resolve, reject) => {
+    handlerInput.attributesManager.getPersistentAttributes()
+        .then((attributes) => {
+            attributes['foo'] = 'bar';
+            handlerInput.attributesManager.setPersistentAttributes(attributes);
+
+            return handlerInput.attributesManager.savePersistentAttributes();
+        })
+        .then(() => {
+            resolve(handlerInput.responseBuilder.getResponse());
+        })
+        .catch((error) => {
+            reject(error);
+        });
+});

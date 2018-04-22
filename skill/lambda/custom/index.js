@@ -26,6 +26,8 @@ exports.handler = skillBuilder
         LaunchRequestHandler,
         HelpHandler,
         ExitHandler,
+        YesIntentHandler,
+        NoIntentHandler,
         SessionEndedRequestHandler
     )
     .withSkillId(process.env.APP_ID)
@@ -34,12 +36,72 @@ exports.handler = skillBuilder
 
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
-        return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
+        const {request} = handlerInput.requestEnvelope;
+
+        return request.type === 'LaunchRequest';
     },
     handle(handlerInput) {
         return handlerInput.responseBuilder
             .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
             .reprompt(MESSAGE.welcome.reprompt)
+            .getResponse();
+    },
+};
+
+const HelpHandler = {
+    canHandle(handlerInput) {
+        const {request} = handlerInput.requestEnvelope;
+        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.HelpIntent';
+    },
+    handle(handlerInput) {
+        return handlerInput.responseBuilder
+            .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
+            .reprompt(MESSAGE.welcome.reprompt)
+            .getResponse();
+    },
+};
+
+const ExitHandler = {
+    canHandle(handlerInput) {
+        const {request} = handlerInput.requestEnvelope;
+        return request.type === 'IntentRequest'
+            && (request.intent.name === 'AMAZON.CancelIntent' || request.intent.name === 'AMAZON.StopIntent');
+    },
+    handle(handlerInput) {
+        return handlerInput.responseBuilder
+            .speak(MESSAGE.exit.speak)
+            .getResponse();
+    },
+};
+
+const YesIntentHandler = {
+    canHandle(handlerInput) {
+        const {request} = handlerInput.requestEnvelope;
+        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.YesIntent';
+    },
+    handle(handlerInput) {
+        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
+        if (sessionAttributes.questions) {
+            return handlerInput.responseBuilder.speak(sessionAttributes.speechOutput)
+                .reprompt(sessionAttributes.repromptText)
+                .getResponse();
+        }
+        return startGame(false, handlerInput);
+    },
+};
+
+
+const NoIntentHandler = {
+    canHandle(handlerInput) {
+        const {request} = handlerInput.requestEnvelope;
+        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.NoIntent';
+    },
+    handle(handlerInput) {
+        const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
+        const speechOutput = requestAttributes.t('STOP_MESSAGE');
+
+        return handlerInput.responseBuilder.speak(speechOutput)
+            .reprompt(speechOutput)
             .getResponse();
     },
 };

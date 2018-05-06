@@ -23,6 +23,47 @@
       ],
       "intents": [
         {
+          "name": "GarbageIntent",
+          "slots": [
+            {
+              "name": "GARBAGE",
+              "type": "GARBAGE_TYPE"
+            }
+          ],
+          "samples": [
+            "{GARBAGE} の捨て方知りたい",
+            "{GARBAGE} の捨て方を知りたい",
+            "{GARBAGE} の捨てる方法知りたい",
+            "{GARBAGE} の捨てる方法を知りたい",
+            "{GARBAGE} の捨て方教えて",
+            "{GARBAGE} の捨て方を教えて",
+            "{GARBAGE} の捨てる方法教えて",
+            "{GARBAGE} の捨てる方法を教えて",
+            "{GARBAGE} の捨て方",
+            "{GARBAGE} の捨て方は",
+            "{GARBAGE} は",
+            "{GARBAGE} はどうやって捨てる",
+            "{GARBAGE} はどうやって捨てればよい",
+            "{GARBAGE} について教えて",
+            "{GARBAGE} について知りたい",
+            "{GARBAGE} を捨てたい",
+            "{GARBAGE} を捨てる",
+            "{GARBAGE} を捨てる方法"
+          ]
+        },
+        {
+          "name": "GarbageOnlyIntent",
+          "slots": [
+            {
+              "name": "GARBAGE",
+              "type": "GARBAGE_TYPE"
+            }
+          ],
+          "samples": [
+            "{GARBAGE}"
+          ]
+        },
+        {
           "name": "AMAZON.CancelIntent",
           "samples": [
             "終了",

@@ -12,6 +12,11 @@ const Alexa = require('ask-sdk-core');
 const MESSAGE = require('message');
 
 /**
+ * 応答を組み立てるためのライブラリ
+ */
+let util = require('util');
+
+/**
  *
  * @type {CustomSkillBuilder}
  */
@@ -28,6 +33,7 @@ exports.handler = skillBuilder
         ExitHandler,
         YesIntentHandler,
         NoIntentHandler,
+        GarbageHandler,
         SessionEndedRequestHandler
     )
     .withSkillId(process.env.APP_ID)
@@ -44,6 +50,27 @@ const LaunchRequestHandler = {
         return handlerInput.responseBuilder
             .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
             .reprompt(MESSAGE.welcome.reprompt)
+            .getResponse();
+    },
+};
+
+const GarbageHandler = {
+    canHandle(handlerInput) {
+        const {request} = handlerInput.requestEnvelope;
+
+        return request.type === 'IntentRequest' && request.intent.name === 'GarbageIntent';
+    },
+    handle(handlerInput) {
+        // requestから値を取得
+        const name = request.intent.// エラーチェック
+
+            // json or DynamoDBから値を取得
+
+            // return
+            const;
+        response = util(MESSAGE.action.speak,);
+        return handlerInput.responseBuilder
+            .speak()
             .getResponse();
     },
 };

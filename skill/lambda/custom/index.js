@@ -24,8 +24,7 @@ const skillBuilder = Alexa.SkillBuilders.custom();
 
 /**
  * Lambdaハンドラーの定義
- * @type {LambdaHandler}
- */
+ * @type {LambdaHandler} */
 exports.handler = skillBuilder
     .addRequestHandlers(
         LaunchRequestHandler,
@@ -54,6 +53,11 @@ const LaunchRequestHandler = {
     },
 };
 
+/*
+ * 本体処理
+ * ゴミ情報をDynamoDBから取得
+ * ひらがなと漢字の両方で検索を行う
+ */
 const GarbageHandler = {
     canHandle(handlerInput) {
         const {request} = handlerInput.requestEnvelope;

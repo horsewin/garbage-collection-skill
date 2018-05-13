@@ -30,8 +30,6 @@ exports.handler = skillBuilder
         LaunchRequestHandler,
         HelpHandler,
         ExitHandler,
-        YesIntentHandler,
-        NoIntentHandler,
         GarbageHandler,
         SessionEndedRequestHandler
     )
@@ -39,24 +37,29 @@ exports.handler = skillBuilder
     .addErrorHandlers(ErrorHandler)
     .lambda();
 
+/**
+ * スキル起動ワードのみの処理
+ * @type {{canHandle(*): *, handle(*): *}}
+ */
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
         const {request} = handlerInput.requestEnvelope;
-
         return request.type === 'LaunchRequest';
     },
     handle(handlerInput) {
         return handlerInput.responseBuilder
-            .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
+            .speak(isWelcome(request.session) + MESSAGE.welcome.speak)
             .reprompt(MESSAGE.welcome.reprompt)
             .getResponse();
     },
 };
 
-/*
+/**
  * 本体処理
+ *
  * ゴミ情報をDynamoDBから取得
  * ひらがなと漢字の両方で検索を行う
+ * @type {{canHandle(*): *, handle(*): *}}
  */
 const GarbageHandler = {
     canHandle(handlerInput) {
@@ -66,37 +69,45 @@ const GarbageHandler = {
     },
     handle(handlerInput) {
         // requestから値を取得
-        const name = request.intent.// エラーチェック
+        // const name = request.intent.// エラーチェック
 
-            // json or DynamoDBから値を取得
+        // json or DynamoDBから値を取得
 
-            // return
-            const;
-        response = util(MESSAGE.action.speak,);
+        //
         return handlerInput.responseBuilder
-            .speak()
+            .speak(isWelcome(request.session) + util(MESSAGE.action.speak, "hogehoge", "fugafuga"));
             .getResponse();
     },
 };
 
+/**
+ * ヘルプ時の処理
+ * @type {{canHandle(*): *, handle(*): *}}
+ */
 const HelpHandler = {
     canHandle(handlerInput) {
         const {request} = handlerInput.requestEnvelope;
-        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.HelpIntent';
+        return request.type === 'IntentRequest' &&
+            request.intent.name === 'AMAZON.HelpIntent';
     },
     handle(handlerInput) {
         return handlerInput.responseBuilder
-            .speak(MESSAGE.welcome.base + MESSAGE.welcome.speak)
+            .speak(isWelcome(request.session) + MESSAGE.welcome.speak)
             .reprompt(MESSAGE.welcome.reprompt)
             .getResponse();
     },
 };
 
+/**
+ * 終了時の処理
+ * @type {{canHandle(*): *, handle(*): *}}
+ */
 const ExitHandler = {
     canHandle(handlerInput) {
         const {request} = handlerInput.requestEnvelope;
         return request.type === 'IntentRequest'
-            && (request.intent.name === 'AMAZON.CancelIntent' || request.intent.name === 'AMAZON.StopIntent');
+            && (request.intent.name === 'AMAZON.CancelIntent' ||
+                request.intent.name === 'AMAZON.StopIntent');
     },
     handle(handlerInput) {
         return handlerInput.responseBuilder
@@ -105,64 +116,22 @@ const ExitHandler = {
     },
 };
 
-const YesIntentHandler = {
-    canHandle(handlerInput) {
-        const {request} = handlerInput.requestEnvelope;
-        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.YesIntent';
-    },
-    handle(handlerInput) {
-        const sessionAttributes = handlerInput.attributesManager.getSessionAttributes();
-        if (sessionAttributes.questions) {
-            return handlerInput.responseBuilder.speak(sessionAttributes.speechOutput)
-                .reprompt(sessionAttributes.repromptText)
-                .getResponse();
-        }
-        return startGame(false, handlerInput);
-    },
-};
-
-
-const NoIntentHandler = {
-    canHandle(handlerInput) {
-        const {request} = handlerInput.requestEnvelope;
-        return request.type === 'IntentRequest' && request.intent.name === 'AMAZON.NoIntent';
-    },
-    handle(handlerInput) {
-        const requestAttributes = handlerInput.attributesManager.getRequestAttributes();
-        const speechOutput = requestAttributes.t('STOP_MESSAGE');
-
-        return handlerInput.responseBuilder.speak(speechOutput)
-            .reprompt(speechOutput)
-            .getResponse();
-    },
-};
-
+/**
+ * 未設定のIntent時の処理
+ * @type {{canHandle(): boolean, handle(*, *): *}}
+ */
 const ErrorHandler = {
     canHandle() {
         return true;
     },
     handle(handlerInput, error) {
-        console.error(`Error handled: ${error.message}`);
-
         return handlerInput.responseBuilder
-            .speak(MESSAGE.error.speak)
-            .reprompt(MESSAGE.error.reprompt)
+            .speak(MESSAGE.error.recognition.speak)
+            .reprompt(MESSAGE.error.recognition.reprompt)
             .getResponse();
     },
 };
 
-return new Promise((resolve, reject) => {
-    handlerInput.attributesManager.getPersistentAttributes()
-        .then((attributes) => {
-            attributes['foo'] = 'bar';
-            handlerInput.attributesManager.setPersistentAttributes(attributes);
-
-            return handlerInput.attributesManager.savePersistentAttributes();
-        })
-        .then(() => {
-            resolve(handlerInput.responseBuilder.getResponse());
-        })
-        .catch((error) => {
-            reject(error);
-        });
-});
+const isWelcome = (session) => {
+    return session.new ? MESSAGE.welcome.base : "";
+};
